@@ -1,7 +1,10 @@
+const SongsService = require('../../services/postgres/SongsService');
+
 class AlbumsHandler {
   constructor(service, validator) {
     this._service = service;
     this._validator = validator;
+    this._songService = new SongsService();
 
     this.postAlbumHandler = this.postAlbumHandler.bind(this);
     this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
@@ -11,9 +14,7 @@ class AlbumsHandler {
 
   async postAlbumHandler(request, h) {
     this._validator.validateAlbumPayload(request.payload);
-    const { name, year } = request.payload;
-
-    const albumId = await this._service.addAlbum({ name, year });
+    const albumId = await this._service.addAlbum(request.payload);
 
     const response = h.response({
       status: 'success',
@@ -29,30 +30,14 @@ class AlbumsHandler {
   async getAlbumByIdHandler(request) {
     const { id } = request.params;
     const album = await this._service.getAlbumById(id);
+    const songs = await this._songService.getSongsByAlbumId(id);
 
-    if (!album) {
-      return {
-        status: 'fail',
-        message: 'Album tidak ditemukan',
-      };
-    }
-
-    const songs = await this._service.getSongsByAlbumId(id);
+    album.songs = songs;
 
     return {
       status: 'success',
-      message: 'Album berhasil ditemukan',
       data: {
-        album: {
-          id: album.id,
-          name: album.name,
-          year: album.year,
-          songs: songs.map((song) => ({
-            id: song.id,
-            title: song.title,
-            performer: song.performer,
-          })),
-        },
+        album,
       },
     };
   }
@@ -72,7 +57,6 @@ class AlbumsHandler {
   async deleteAlbumByIdHandler(request) {
     const { id } = request.params;
     await this._service.deleteAlbumById(id);
-
     return {
       status: 'success',
       message: 'Album berhasil dihapus',

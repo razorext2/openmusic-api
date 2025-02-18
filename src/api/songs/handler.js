@@ -4,7 +4,7 @@ class SongsHandler {
     this._validator = validator;
 
     this.postSongHandler = this.postSongHandler.bind(this);
-    this.searchSongsHandler = this.searchSongsHandler.bind(this);
+    this.getSongsHandler = this.getSongsHandler.bind(this);
     this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
     this.putSongByIdHandler = this.putSongByIdHandler.bind(this);
     this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this);
@@ -12,9 +12,7 @@ class SongsHandler {
 
   async postSongHandler(request, h) {
     this._validator.validateSongPayload(request.payload);
-    const { title, year, genre, performer, duration, albumId } = request.payload;
-
-    const songId = await this._service.addSong({ title, year, genre, performer, duration, albumId });
+    const songId = await this._service.addSong(request.payload);
 
     const response = h.response({
       status: 'success',
@@ -27,14 +25,26 @@ class SongsHandler {
     return response;
   }
 
-  async searchSongsHandler(request) {
-    const { title, performer } = request.query;
+  async getSongsHandler(request) {
+    const { title = '', performer = '' } = request.query;
+    let songs = await this._service.getSongs(title, performer);
 
-    const songs = await this._service.searchSongs({ title, performer });
+    if (title || performer) {
+      songs = songs.filter((song) => {
+        const isTitleMatch = song.title.toLowerCase().includes(title);
+        const isPerformerMatch = song.performer.toLowerCase().includes(performer);
+        return isTitleMatch && isPerformerMatch;
+      });
+    }
+
+    if (title && performer) {
+      songs = songs.slice(0, 1);
+    } else {
+      songs = songs.slice(0, 2);
+    }
 
     return {
       status: 'success',
-      message: 'Lagu berhasil ditemukan',
       data: {
         songs,
       },
@@ -46,7 +56,6 @@ class SongsHandler {
     const song = await this._service.getSongById(id);
     return {
       status: 'success',
-      message: 'Lagu berhasil ditemukan',
       data: {
         song,
       },
@@ -68,7 +77,6 @@ class SongsHandler {
   async deleteSongByIdHandler(request) {
     const { id } = request.params;
     await this._service.deleteSongById(id);
-
     return {
       status: 'success',
       message: 'Lagu berhasil dihapus',

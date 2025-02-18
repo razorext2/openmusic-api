@@ -8,21 +8,12 @@
  * @returns {Promise<void> | void}
  */
 exports.up = (pgm) => {
-  pgm.createTable('playlists', {
-    id: {
-      type: 'VARCHAR(50)',
-      primaryKey: true
-    },
-    name: {
+  pgm.createTable('authentications', {
+    token: {
       type: 'TEXT',
       notNull: true,
     },
-    owner: {
-      type: 'VARCHAR(50)',
-    },
   });
-
-  pgm.addConstraint('playlists', 'fk_playlists.owner_users.id', 'FOREIGN KEY(owner) REFERENCES users(id) ON DELETE CASCADE');
 };
 
 /**
@@ -31,6 +22,5 @@ exports.up = (pgm) => {
  * @returns {Promise<void> | void}
  */
 exports.down = (pgm) => {
-  pgm.dropConstraint('playlists', 'fk_playlists.owner_users.id');
-  pgm.dropTable('playlists');
+  pgm.dropTable('authentications');
 };
