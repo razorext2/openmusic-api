@@ -21,7 +21,7 @@ class PlaylistsService {
     const { rowCount, rows } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new InvariantError('Playlist gagal ditambahkan');
+      throw new InvariantError('Gagal membuat playlist.');
     }
 
     return rows[0].id;
@@ -46,7 +46,7 @@ class PlaylistsService {
     const { rowCount, rows } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new NotFoundError('Playlist tidak ditemukan');
+      throw new NotFoundError('Data playlist tidak ditemukan. Id tidak ditemukan');
     }
 
     return rows[0];
@@ -61,7 +61,7 @@ class PlaylistsService {
     const { rowCount } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new NotFoundError('Playlist gagal dihapus. Id tidak ditemukan');
+      throw new NotFoundError('Gagal menghapus playlist. Id tidak ditemukan');
     }
   }
 
@@ -75,7 +75,7 @@ class PlaylistsService {
     const { rowCount } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new InvariantError('Musik gagal ditambahkan kedalam playlist');
+      throw new InvariantError('Gagal menambahkan lagu ke playlist');
     }
   }
 
@@ -94,7 +94,7 @@ class PlaylistsService {
     const playlistResult = await this._pool.query(queryGetPlaylist);
 
     if (!playlistResult.rowCount) {
-      throw new NotFoundError('Playlist tidak ditemukan');
+      throw new NotFoundError('Data playlist tidak ditemukan. Id tidak ditemukan');
     }
 
     const queryGetSongs = {
@@ -129,7 +129,7 @@ class PlaylistsService {
     const { rowCount } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new InvariantError('Musik gagal dihapus dari playlist');
+      throw new InvariantError('Lagu gagal dihapus dari playlist');
     }
   }
 
@@ -165,7 +165,7 @@ class PlaylistsService {
     const { rowCount } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new InvariantError('Gagal menambahkan activity');
+      throw new InvariantError('Aktivitas gagal direkam');
     }
   }
 
@@ -178,13 +178,13 @@ class PlaylistsService {
     const { rowCount, rows } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new NotFoundError('Playlist tidak ditemukan');
+      throw new NotFoundError('Data playlist tidak ditemukan. Id tidak ditemukan');
     }
 
     const playlist = rows[0];
 
     if (playlist.owner !== userId) {
-      throw new AuthorizationError('Anda tidak berhak mengakses resource ini');
+      throw new AuthorizationError('Anda tidak berhak mengakses data ini');
     }
   }
 

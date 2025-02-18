@@ -24,7 +24,7 @@ class UsersService {
     const { rows } = await this._pool.query(query);
 
     if (!rows.length) {
-      throw new InvariantError('User gagal ditambahkan');
+      throw new InvariantError('Gagal menambah user.');
     }
 
     return rows[0].id;
@@ -40,7 +40,7 @@ class UsersService {
     const { rows } = await this._pool.query(query);
 
     if (rows.length > 0) {
-      throw new InvariantError('Gagal menambahkan user. Username sudah digunakan.');
+      throw new InvariantError('Gagal menambah user. Username sudah digunakan');
     }
   }
 
@@ -53,7 +53,7 @@ class UsersService {
     const { rowCount, rows } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new NotFoundError('User tidak ditemukan');
+      throw new NotFoundError('User tidak ditemukan. Id tidak ditemukan');
     }
 
     return rows[0];

@@ -16,13 +16,13 @@ class SongsService {
 
     const query = {
       text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      values: [id, title, year, genre, performer, duration, albumId],
+      values: [id, title, year, performer, genre, duration, albumId],
     };
 
     const { rows } = await this._pool.query(query);
 
     if (!rows[0].id) {
-      throw new InvariantError('Lagu gagal ditambahkan');
+      throw new InvariantError('Gagal menambahkan lagu.');
     }
 
     return rows[0].id;
@@ -56,7 +56,7 @@ class SongsService {
     const { rowCount, rows } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new NotFoundError('Lagu tidak ditemukan');
+      throw new NotFoundError('Data lagu tidak ada. Id tidak ditemukan');
     }
 
     return rows.map(mapDBToModel)[0];
@@ -86,7 +86,7 @@ class SongsService {
     const { rowCount } = await this._pool.query(query);
 
     if (!rowCount) {
-      throw new NotFoundError('Lagu gagal dihapus. Id tidak ditemukan');
+      throw new NotFoundError('Gagal menghapus lagu. Id tidak ditemukan');
     }
   }
 }

@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const PostAuthenticationPayloadSchema = Joi.object({
-  username: Joi.string().max(50).required(),
+  username: Joi.string().required(),
   password: Joi.string().required(),
 });
 

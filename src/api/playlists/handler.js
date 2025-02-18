@@ -74,7 +74,7 @@ class PlaylistsHandler {
 
     const response = h.response({
       status: 'success',
-      message: 'Musik berhasil ditambahkan ke dalam playlist',
+      message: 'Lagu berhasil ditambahkan ke dalam playlist',
     });
     response.code(201);
     return response;
@@ -106,7 +106,7 @@ class PlaylistsHandler {
 
     return {
       status: 'success',
-      message: 'Musik berhasil dihapus dari playlist',
+      message: 'Lagu berhasil dihapus dari playlist',
     };
   }
 

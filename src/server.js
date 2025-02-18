@@ -1,8 +1,8 @@
-// mengimpor dotenv dan menjalankan konfigurasinya
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const ClientError = require('./exceptions/ClientError');
 
 // albums
 const albums = require('./api/albums');
@@ -13,7 +13,6 @@ const AlbumsValidator = require('./validator/albums');
 const songs = require('./api/songs');
 const SongsService = require('./services/postgres/SongsService');
 const SongsValidator = require('./validator/songs');
-const ClientError = require('./exceptions/ClientError');
 
 // users
 const users = require('./api/users');
@@ -54,14 +53,12 @@ const init = async () => {
     },
   });
 
-  // registrasi plugin eksternal
   await server.register([
     {
       plugin: Jwt,
     },
   ]);
 
-  // mendefinisikan strategy autentikasi jwt
   server.auth.strategy('openmusicapp_jwt', 'jwt', {
     keys: process.env.ACCESS_TOKEN_KEY,
     verify: {
@@ -79,53 +76,12 @@ const init = async () => {
   });
 
   await server.register([
-    {
-      plugin: albums,
-      options: {
-        service: albumsService,
-        validator: AlbumsValidator,
-      },
-    },
-    {
-      plugin: songs,
-      options: {
-        service: songsService,
-        validator: SongsValidator,
-      },
-    },
-    {
-      plugin: users,
-      options: {
-        service: usersService,
-        validator: UsersValidator,
-      },
-    },
-    {
-      plugin: playlists,
-      options: {
-        playlistsService,
-        songsService,
-        validator: PlaylistsValidator,
-      },
-    },
-    {
-      plugin: authentications,
-      options: {
-        authenticationsService,
-        usersService,
-        tokenManager: TokenManager,
-        validator: AuthenticationsValidator,
-      },
-    },
-    {
-      plugin: collaborations,
-      options: {
-        collaborationsService,
-        playlistsService,
-        usersService,
-        validator: CollaborationsValidator,
-      },
-    },
+    { plugin: albums, options: { service: albumsService, validator: AlbumsValidator } },
+    { plugin: songs, options: { service: songsService, validator: SongsValidator } },
+    { plugin: users, options: { service: usersService, validator: UsersValidator } },
+    { plugin: playlists, options: { playlistsService, songsService, validator: PlaylistsValidator } },
+    { plugin: authentications, options: { authenticationsService, usersService, tokenManager: TokenManager, validator: AuthenticationsValidator } },
+    { plugin: collaborations, options: { collaborationsService, playlistsService, usersService, validator: CollaborationsValidator } },
   ]);
 
   server.ext('onPreResponse', (request, h) => {
@@ -147,7 +103,7 @@ const init = async () => {
 
       const newResponse = h.response({
         status: 'error',
-        message: 'terjadi kegagalan pada server kami',
+        message: 'Terjadi kegagalan pada server',
       });
       newResponse.code(500);
       return newResponse;
