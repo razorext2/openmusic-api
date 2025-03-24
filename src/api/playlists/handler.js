@@ -1,16 +1,16 @@
 class PlaylistsHandler {
-  constructor(playlistsService, songsService, validator) {
+  constructor(playlistsService, songsService, activitiesService, validator) {
     this._playlistsService = playlistsService;
     this._songsService = songsService;
+    this._activitiesService = activitiesService;
     this._validator = validator;
 
     this.postPlaylistHandler = this.postPlaylistHandler.bind(this);
     this.getPlaylistsHandler = this.getPlaylistsHandler.bind(this);
     this.deletePlaylistByIdHandler = this.deletePlaylistByIdHandler.bind(this);
-    this.postPlaylistSongByIdHandler = this.postPlaylistSongByIdHandler.bind(this);
-    this.getPlaylistSongsByIdHandler = this.getPlaylistSongsByIdHandler.bind(this);
-    this.deletePlaylistSongsByIdHandler = this.deletePlaylistSongsByIdHandler.bind(this);
-    this.getPlaylistActivitiesByIdHandler = this.getPlaylistActivitiesByIdHandler.bind(this);
+    this.postSongToPlaylistHandler = this.postSongToPlaylistHandler.bind(this);
+    this.getSongInPlaylistByIdHandler = this.getSongInPlaylistByIdHandler.bind(this);
+    this.deleteSongFromPlaylistHandler = this.deleteSongFromPlaylistHandler.bind(this);
   }
 
   async postPlaylistHandler(request, h) {
@@ -35,42 +35,53 @@ class PlaylistsHandler {
     return response;
   }
 
-  async getPlaylistsHandler(request) {
+  async getPlaylistsHandler(request, h) {
     const { id: credentialId } = request.auth.credentials;
     const playlists = await this._playlistsService.getPlaylists(credentialId);
-    return {
+
+    const response = h.response({
       status: 'success',
       data: {
         playlists,
       },
-    };
+    });
+
+    response.code(200);
+    return response;
   }
 
-  async deletePlaylistByIdHandler(request) {
+  async deletePlaylistByIdHandler(request, h) {
     const { id } = request.params;
     const { id: credentialId } = request.auth.credentials;
 
     await this._playlistsService.verifyPlaylistOwner(id, credentialId);
     await this._playlistsService.deletePlaylistById(id);
 
-    return {
+    const response = h.response({
       status: 'success',
       message: 'Playlist berhasil dihapus',
-    };
+    });
+
+    response.code(200);
+    return response;
   }
 
-  async postPlaylistSongByIdHandler(request, h) {
-    this._validator.validateSongPlaylistPayload(request.payload);
-
-    const { songId } = request.payload;
-    await this._songsService.getSongById(songId);
-
-    const { id: playlistId } = request.params;
+  async postSongToPlaylistHandler(request, h) {
+    this._validator.validatePlaylistSongPayload(request.payload);
     const { id: credentialId } = request.auth.credentials;
+    const { id } = request.params;
+    const { songId } = request.payload;
 
-    await this._playlistsService.verifyPlaylistAccess(playlistId, credentialId);
-    await this._playlistsService.addSongToPlaylist(playlistId, songId);
-    await this._playlistsService.addActivity(playlistId, songId, credentialId, 'add');
+    await this._songsService.getSongById(songId);
+    await this._playlistsService.verifyPlaylistAccess(id, credentialId);
+    await this._playlistsService.addPlaylistSong(id, songId);
+
+    const action = 'add';
+    const time = new Date().toISOString();
+
+    await this._activitiesService.addPlaylistSongActivities(id, {
+      songId, userId: credentialId, action, time,
+    });
 
     const response = h.response({
       status: 'success',
@@ -80,51 +91,48 @@ class PlaylistsHandler {
     return response;
   }
 
-  async getPlaylistSongsByIdHandler(request) {
+  async getSongInPlaylistByIdHandler(request, h) {
     const { id } = request.params;
     const { id: credentialId } = request.auth.credentials;
-    const playlist = await this._playlistsService.getPlaylistSongsById(id, credentialId);
 
-    return {
+    await this._playlistsService.verifyPlaylistAccess(id, credentialId);
+
+    const playlist = await this._playlistsService.getPlaylistSongById(id, credentialId);
+
+    const response = h.response({
       status: 'success',
       data: {
         playlist,
       },
-    };
+    });
+
+    response.code(200);
+    return response;
   }
 
-  async deletePlaylistSongsByIdHandler(request) {
-    this._validator.validateSongPlaylistPayload(request.payload);
-
+  async deleteSongFromPlaylistHandler(request, h) {
+    this._validator.validatePlaylistSongPayload(request.payload);
+    const { id: credentialId } = request.auth.credentials;
     const { id } = request.params;
     const { songId } = request.payload;
-    const { id: credentialId } = request.auth.credentials;
 
     await this._playlistsService.verifyPlaylistAccess(id, credentialId);
-    await this._playlistsService.deleteSongFromPlaylist(id, songId);
-    await this._playlistsService.addActivity(id, songId, credentialId, 'delete');
+    await this._playlistsService.deletePlaylistSong(id, songId);
 
-    return {
+    const action = 'delete';
+    const time = new Date().toISOString();
+
+    await this._activitiesService.addPlaylistSongActivities(id, {
+      songId, userId: credentialId, action, time,
+    });
+
+    const response = h.response({
       status: 'success',
-      message: 'Lagu berhasil dihapus dari playlist',
-    };
-  }
+      message: 'Playlist berhasil dihapus',
+    });
 
-  async getPlaylistActivitiesByIdHandler(request) {
-    const { id } = request.params;
-    const { id: credentialId } = request.auth.credentials;
-
-    await this._playlistsService.verifyPlaylistAccess(id, credentialId);
-
-    const activities = await this._playlistsService.getPlaylistActivitiesById(id);
-
-    return {
-      status: 'success',
-      data: {
-        playlistId: id,
-        activities,
-      },
-    };
+    response.code(200);
+    return response;
   }
 }
 
