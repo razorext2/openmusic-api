@@ -1,4 +1,5 @@
 const SongsService = require('../../services/postgres/SongsService');
+const autoBind = require('auto-bind').default;
 
 class AlbumsHandler {
   constructor(service, validator) {
@@ -6,15 +7,14 @@ class AlbumsHandler {
     this._validator = validator;
     this._songService = new SongsService();
 
-    this.postAlbumHandler = this.postAlbumHandler.bind(this);
-    this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
-    this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
-    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this);
+    autoBind(this);
   }
 
   async postAlbumHandler(request, h) {
     this._validator.validateAlbumPayload(request.payload);
-    const albumId = await this._service.addAlbum(request.payload);
+    const { name = 'untitled', year } = request.payload;
+
+    const albumId = await this._service.addAlbum({ name, year });
 
     const response = h.response({
       status: 'success',
@@ -37,7 +37,17 @@ class AlbumsHandler {
     return {
       status: 'success',
       data: {
-        album,
+        album: {
+          id: album.id,
+          name: album.name,
+          year: album.year,
+          coverUrl: album.coverUrl,
+          songs: songs.map((song) => ({
+            id: song.id,
+            title: song.title,
+            performer: song.performer,
+          }))
+        },
       },
     };
   }
