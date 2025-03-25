@@ -73,9 +73,9 @@ class AlbumLikesService {
   async getAlbumLikesById(albumId) {
     try {
       const header = 'cache';
-      const res = await this._cacheService.get(`albumLikes:${albumId}`);
+      const result = await this._cacheService.get(`albumLikes:${albumId}`);
 
-      return { likes: parseInt(res), header };
+      return { likes: parseInt(result), header };
     } catch {
       const header = 'server';
       const query = {
@@ -84,15 +84,15 @@ class AlbumLikesService {
       };
 
       const res = await this._pool.query(query);
-      const like = parseInt(res.rows[0].count);
+      const likes = parseInt(res.rows[0].count);
 
       if (!res.rows.length) {
         throw new NotFoundError('Gagal menghapus like. Data album tidak ditemukan.');
       }
 
-      await this._cacheService.set(`albumLikes:${albumId}`, like);
+      await this._cacheService.set(`albumLikes:${albumId}`, likes);
 
-      return { like, header };
+      return { likes, header };
     }
   }
 }

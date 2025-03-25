@@ -29,13 +29,10 @@ class AlbumLikesHandler {
 
     await this._service.deleteLike(albumId, userId);
 
-    const response = h.response({
+    return {
       status: 'success',
       message: 'Batal menyukai album.',
-    });
-
-    response.code(201);
-    return response;
+    };
   }
 
   async getAlbumLikesByIdHandler(request, h) {
