@@ -3,7 +3,7 @@ const autoBind = require('auto-bind').default;
 class Listener {
   constructor(playlistsService, mailSender) {
     this._playlitstService = playlistsService;
-    this.mailSender = mailSender;
+    this._mailSender = mailSender;
 
     autoBind(this);
   }

@@ -22,6 +22,8 @@ class ExportsHandler {
       targetEmail: request.payload.targetEmail,
     };
 
+    console.log('Pesan yang dikirim ke RabbitMQ:', message); // Debugging log
+
     await this._service.sendMessage('export:playlists', JSON.stringify(message));
 
     const response = h.response({
