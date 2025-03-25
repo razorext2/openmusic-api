@@ -15,7 +15,7 @@ class AlbumLikesService {
 
     // definisikan query untuk menampilkan data album
     const albums = {
-      text: 'SELECT id FROM albums WHERE id = $i',
+      text: 'SELECT id FROM albums WHERE id = $1',
       values: [albumId],
     };
 
@@ -38,7 +38,7 @@ class AlbumLikesService {
     }
 
     const insert = {
-      text: 'INSERT INTO album_likes VALUES($1, $2, $3) RETURNING id',
+      text: 'INSERT INTO album_likes (id, album_id, user_id) VALUES($1, $2, $3) RETURNING id',
       values: [id, albumId, userId],
     };
 
